@@ -1,0 +1,11 @@
+coverage:
+  status:
+    project:
+      default:
+        target: 80% # Set your desired coverage threshold
+        threshold: 1% # Allowable coverage drop
+        branches:
+          - main
+
+comment:
+  layout: "reach, diff, flags, files, tree"
