@@ -1,5 +1,5 @@
 # Project: Receipt Processor Service
-[![codecov](https://codecov.io/github/shivasaicharanruthala/backend-engineer-assignment/branch/main/graph/badge.svg?token=F9Q8JZL3FJ)](https://codecov.io/github/shivasaicharanruthala/backend-engineer-assignment)
+[![codecov](https://codecov.io/github/shivasaicharanruthala/backend-engineer-assignment/branch/main/graph/badge.svg?token=F5U0W7I373)](https://codecov.io/github/shivasaicharanruthala/backend-engineer-assignment)
 
 - Build a webservice that fulfils the documented API. The API is described below. A formal definition is provided in the [api.yml](https://github.com/fetch-rewards/receipt-processor-challenge/blob/main/api.yml) file
 - Data does not need to persist when your application stops. It is sufficient to store information in memory.
