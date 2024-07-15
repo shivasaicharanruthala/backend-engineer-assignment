@@ -1,0 +1,53 @@
+name: Build & Push Latest image
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  setup-go:
+    name: setup-go
+    runs-on: ubuntu-22.04
+    env:
+      PORT: 8080
+      LOG_FILE_PATH: "receipts.log"
+
+    steps:
+      - name: Set up Go 1.21.1
+        id: go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.21.1
+
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Install Dependencies
+        run: |
+          go mod tidy
+          go get -v ./...
+
+      - name: Unit & Integration Tests
+        run: |
+          touch coverage.out.temp coverage.out final_coverage.out
+          
+          # Generate test report for every file in every package
+          go test -v -coverprofile=coverage.out.temp ./...
+          
+          # Removes coverage for mock_ files
+          cat coverage.out.temp | grep -vE "mock_" > coverage.out
+          
+          # Generate test report for every function in every file
+          go tool cover -func=coverage.out >> final_coverage.out
+          
+          cat final_coverage.out
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage.out
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: true

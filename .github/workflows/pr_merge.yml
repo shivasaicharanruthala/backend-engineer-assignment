@@ -1,0 +1,77 @@
+name: Build & Push Latest image
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - closed
+
+jobs:
+  setup-go:
+    if: github.event.pull_request.merged == true
+    name: setup-go
+    runs-on: ubuntu-22.04
+    env:
+      PORT: 8080
+      LOG_FILE_PATH: "receipts.log"
+
+    steps:
+      - name: Set up Go 1.21.1
+        id: go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.21.1
+
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Install Dependencies
+        run: |
+          go mod tidy
+          go get -v ./...
+
+      - name: Unit & Integration Tests
+        run: |
+          touch coverage.out.temp coverage.out final_coverage.out
+          
+          # Generate test report for every file in every package
+          go test -v -coverprofile=coverage.out.temp ./...
+          
+          # Removes coverage for mock_ files
+          cat coverage.out.temp | grep -vE "mock_" > coverage.out
+          
+          # Generate test report for every function in every file
+          go tool cover -func=coverage.out >> final_coverage.out
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: final_coverage.out
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: true
+
+      - name: Build Go Application
+        run: |
+          sudo apt-get update
+          sudo apt-get upgrade -y
+          sudo apt install build-essential -y
+          sudo apt-get clean
+          
+          # Build etl application          
+          GOARCH=amd64 GOOS=linux go build -tags musl -o backend-engineer-assignment
+
+      - name: Login to Docker Hub
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+
+      - name: Build and Push Docker image
+        run: |
+          # Build etl application
+          docker build -t shiva5128/backend-engineer-assignment:latest .
+          docker push shiva5128/backend-engineer-assignment:latest 
+

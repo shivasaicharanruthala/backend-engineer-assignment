@@ -1,0 +1,8 @@
+.idea
+*.xml
+*.iml
+*.log
+*.out
+*.temp
+.env
+go.sum
